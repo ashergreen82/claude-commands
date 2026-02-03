@@ -10,9 +10,12 @@ You are investigating a Jira card. Your goal is to **understand the task thoroug
 
 ## CRITICAL: Browser Tools Required
 
-**Before starting, verify browser tools are available by calling `mcp__plugin_playwright_playwright__browser_snapshot` or similar.**
+**Before starting, verify browser tools are available using this priority order:**
 
-If browser tools are unavailable or return an error:
+1. **Prefer Claude in Chrome**: Try `mcp__claude-in-chrome__tabs_context_mcp` first
+2. **Fallback to Playwright**: If Claude in Chrome is unavailable, use `mcp__plugin_playwright_playwright__browser_snapshot`
+
+If both browser tools are unavailable or return an error:
 1. **STOP immediately**
 2. Inform the user: "Browser tools are not connected. I need browser access to observe and recreate the issue."
 3. Wait for the user to either:
@@ -45,13 +48,18 @@ If browser tools are unavailable or return an error:
 
 **This phase is vital - you must observe and recreate the issue using browser tools.**
 
-1. Use `mcp__plugin_playwright_playwright__browser_snapshot` to see the current page state
-2. Navigate to the relevant screen using browser tools
+**Browser Tool Priority:**
+- **Claude in Chrome** (preferred): Use `mcp__claude-in-chrome__screenshot`, `mcp__claude-in-chrome__read_page`, etc.
+- **Playwright** (fallback): Use `mcp__plugin_playwright_playwright__browser_snapshot`, etc.
+
+**Steps:**
+1. See the current page state using browser tools
+2. Navigate to the relevant screen
 3. Follow the operation steps to recreate the user's exact path
 4. Observe the current behavior - what does the UI actually show?
 5. **Attempt to recreate the issue** described in the Jira card
 6. Document what you observe vs what the Jira card describes
-7. Take screenshots with `mcp__plugin_playwright_playwright__browser_take_screenshot` if helpful
+7. Take screenshots if helpful
 
 If you cannot recreate the issue, ask the user for clarification before proceeding.
 

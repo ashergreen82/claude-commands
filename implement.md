@@ -27,6 +27,11 @@ Use the INDEX.md files to find relevant docs by keyword.
 
 ## Phase 4: Verify
 
+**Browser Tool Priority:**
+- **Claude in Chrome** (preferred): Use `mcp__claude-in-chrome__*` tools for testing
+- **Playwright** (fallback): Use `mcp__plugin_playwright_playwright__*` tools if Claude in Chrome unavailable
+
+**Verification Steps:**
 1. Use browser tools to confirm the fix works
 2. Test edge cases mentioned in the Jira card
 3. Verify no regressions in related functionality

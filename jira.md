@@ -113,37 +113,7 @@ Use AskUserQuestion to fill gaps. Ask about:
 
 Keep questions focused and batched (2-3 at a time max).
 
-## Phase 5: Update Documentation
-
-**Token limits**: operations=500, reference=500, architecture=500, INDEX=200. Keep docs concise.
-
-For any screen you explored that lacks documentation:
-1. Create a new operation file using the template in `.agents/AI-INSTRUCTIONS.md`
-2. Add keywords to `.agents/operations/INDEX.md`
-3. Update `.agents/operations/NAVIGATION.md` if hierarchy changed
-
-For existing operations with gaps:
-1. Add missing steps or gotchas
-2. Correct any inaccuracies you observed
-
-For terminology discovered:
-1. Add to `.agents/reference/` if it's reusable domain knowledge
-2. Update `.agents/reference/INDEX.md` with keywords
-
-For patterns or integrations discovered:
-1. Document in `.agents/architecture/` if it's a cross-cutting concern
-2. Document in `.agents/architecture/integrations/` if it involves external services
-
-## Phase 6: Verify Documentation
-
-Run linters to ensure compliance:
-```bash
-yarn lint:agents
-```
-
-Fix any structure or token limit violations before proceeding.
-
-## Phase 7: Checkpoint
+## Phase 5: Checkpoint
 
 When investigation is complete, report using color-coded status indicators:
 
@@ -166,21 +136,16 @@ When investigation is complete, report using color-coded status indicators:
 **Screen Path**: Login → [operation chain] → Target Screen
 
 **Operations Consulted**:
-- [list of .md files you read]
+- [list of .md files you read for context]
 
-**Documentation Status**: [🟢/🟡/🔴]
-- **Created**: [new .md files, or "None"]
-- **Updated**: [modified .md files, or "None"]
-- **Status**: 🟢 Verified accurate | 🟡 Minor gaps found | 🔴 Major gaps - docs created
+**Root Cause**:
+[Technical explanation of what's broken and why]
 
-**Suggestions**: [🟢/🟡]
-- 🟢 None - documentation is complete
-- 🟡 [List suggestions: missing docs, keyword additions, corrections]
-
-**Lint Status**: 🟢 Pass | 🟡 Warnings | 🔴 Fail - [what needs fixing]
+**Files Involved**:
+- [list of code files that need to be changed]
 
 **Understanding**:
-[2-3 sentences explaining the issue and what needs to happen]
+[2-3 sentences explaining the issue and what needs to happen to fix it]
 
 **Ready to implement?**
 - Reply "proceed" to start implementation

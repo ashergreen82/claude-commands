@@ -8,22 +8,54 @@ You are investigating a Jira card. Your goal is to **understand the task thoroug
 - **DO NOT suggest fixes** yet
 - Focus entirely on understanding and documenting
 
-## CRITICAL: Browser Tools Required
+## Phase 0: Verify Browser Tools (MANDATORY PREREQUISITE)
 
-**Before starting, verify browser tools are available using this priority order:**
+**⚠️ CRITICAL: This MUST be the first thing you do. Do not proceed to Phase 1 without completing this step.**
 
-1. **Prefer Claude in Chrome**: Try `mcp__claude-in-chrome__tabs_context_mcp` first
-2. **Fallback to Playwright**: If Claude in Chrome is unavailable, use `mcp__plugin_playwright_playwright__browser_snapshot`
+**Test browser tools immediately using this exact sequence:**
 
-If both browser tools are unavailable or return an error:
-1. **STOP immediately**
-2. Inform the user: "Browser tools are not connected. I need browser access to observe and recreate the issue."
-3. Wait for the user to either:
-   - Fix the connection and tell you to continue
-   - Provide an alternative (screenshots, recordings, etc.)
-   - Tell you to skip browser observation
+1. **Test Claude in Chrome first:**
+   ```
+   Call: mcp__claude-in-chrome__tabs_context_mcp with createIfEmpty=true
+   ```
+   - If successful → Browser tools are ready, proceed to Phase 1
+   - If error → Continue to step 2
 
-**Do not proceed past Phase 2 without browser access or explicit user permission to skip.**
+2. **Test Playwright as fallback:**
+   ```
+   Call: mcp__playwright__browser_snapshot
+   ```
+   - If successful → Browser tools are ready, proceed to Phase 1
+   - If error → Continue to step 3
+
+3. **Both tools failed - STOP IMMEDIATELY:**
+
+   **Do NOT proceed. Output this exact message:**
+
+   ```
+   ❌ BROWSER TOOLS NOT AVAILABLE
+
+   I cannot proceed with the Jira investigation because browser tools are required to observe and recreate the issue.
+
+   Tested:
+   - Claude in Chrome: [error message]
+   - Playwright: [error message]
+
+   To continue, please either:
+   1. Fix the browser tool connection and tell me to retry
+   2. Provide screenshots/recordings of the issue as an alternative
+   3. Explicitly tell me to skip browser observation (not recommended)
+
+   I will wait for your response before proceeding.
+   ```
+
+   **STOP HERE. Do not read documentation, do not parse the task, do not do anything else until the user responds.**
+
+**Why this matters:**
+- UI observation catches issues code analysis misses
+- Recreating the bug ensures we're solving the right problem
+- Screenshots document the actual vs expected behavior
+- Skipping this step leads to incomplete understanding
 
 ## Phase 1: Parse the Task
 
@@ -48,18 +80,26 @@ If both browser tools are unavailable or return an error:
 
 **This phase is vital - you must observe and recreate the issue using browser tools.**
 
+**You verified browser tools in Phase 0. Now use them to explore:**
+
 **Browser Tool Priority:**
-- **Claude in Chrome** (preferred): Use `mcp__claude-in-chrome__screenshot`, `mcp__claude-in-chrome__read_page`, etc.
-- **Playwright** (fallback): Use `mcp__plugin_playwright_playwright__browser_snapshot`, etc.
+- **Claude in Chrome** (if available): Use `mcp__claude-in-chrome__screenshot`, `mcp__claude-in-chrome__read_page`, etc.
+- **Playwright** (fallback): Use `mcp__playwright__browser_snapshot`, `mcp__playwright__browser_navigate`, etc.
 
 **Steps:**
-1. See the current page state using browser tools
-2. Navigate to the relevant screen
-3. Follow the operation steps to recreate the user's exact path
-4. Observe the current behavior - what does the UI actually show?
-5. **Attempt to recreate the issue** described in the Jira card
-6. Document what you observe vs what the Jira card describes
-7. Take screenshots if helpful
+1. Start the application (navigate to the local dev URL or production URL)
+2. See the current page state using browser tools
+3. Navigate to the relevant screen following the navigation path from Phase 2
+4. Follow the operation steps to recreate the user's exact path
+5. Observe the current behavior - what does the UI actually show?
+6. **Attempt to recreate the issue** described in the Jira card
+7. Document what you observe vs what the Jira card describes
+8. Take screenshots of key states (before, during, after)
+
+**Required Output:**
+- Confirm you successfully recreated the bug (or explain why you couldn't)
+- Screenshots showing the actual vs expected behavior
+- Any additional observations not mentioned in the Jira card
 
 If you cannot recreate the issue, ask the user for clarification before proceeding.
 
@@ -116,6 +156,12 @@ When investigation is complete, report using color-coded status indicators:
 ## Investigation Complete
 
 **Jira Summary**: [One sentence summary of the task]
+
+**Browser Tools Used**: [Claude in Chrome | Playwright | Skipped with permission]
+
+**Bug Recreation**: [🟢/🔴]
+- 🟢 Successfully recreated the issue - [brief description of what you observed]
+- 🔴 Could not recreate - [explain why and what you found instead]
 
 **Screen Path**: Login → [operation chain] → Target Screen
 

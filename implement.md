@@ -2,16 +2,28 @@
 
 Documentation has been reviewed. Now implement the fix.
 
-## Phase 1: Load Context
+## Phase 1: Load Investigation Summary
 
-Read relevant documentation before coding:
+**CRITICAL: Start by reading the investigation file created by `/jira` command.**
 
-1. **Operations**: Read `.agents/operations/` docs for the screens/features involved
-2. **Reference**: Read `.agents/reference/` for domain terminology
-3. **Architecture**: Read `.agents/architecture/` for patterns (auth, state, error handling)
-4. **Integrations**: Read `.agents/architecture/integrations/` if external services are involved
+1. **Read `.agents/investigations/[TICKET-ID].md`** - This contains:
+   - Acceptance criteria (Gherkin format)
+   - Bug recreation details
+   - Root cause analysis
+   - Files to modify
+   - Implementation plan
+   - Edge cases and testing strategy
 
-Use the INDEX.md files to find relevant docs by keyword.
+2. **If investigation file is missing:**
+   - Ask user for the ticket ID
+   - Or request they run `/jira` first to investigate
+   - Do NOT proceed without understanding the context
+
+3. **Supplement with architecture docs only if needed:**
+   - **Operations**: `.agents/operations/` for screen-specific steps
+   - **Reference**: `.agents/reference/` for domain terminology
+   - **Architecture**: `.agents/architecture/` for patterns (auth, state, error handling)
+   - **Integrations**: `.agents/architecture/integrations/` for external services
 
 ## Phase 2: Find the Code
 
@@ -27,69 +39,103 @@ Use the INDEX.md files to find relevant docs by keyword.
 
 ## Phase 4: Verify
 
+**Use browser tools to test the implementation:**
+
 **Browser Tool Priority:**
 - **Claude in Chrome** (preferred): Use `mcp__claude-in-chrome__*` tools for testing
-- **Playwright** (fallback): Use `mcp__plugin_playwright_playwright__*` tools if Claude in Chrome unavailable
+- **Playwright** (fallback): Use `mcp__playwright__*` tools if Claude in Chrome unavailable
 
 **Verification Steps:**
-1. Use browser tools to confirm the fix works
-2. Test edge cases mentioned in the Jira card
-3. Verify no regressions in related functionality
+1. Navigate to the relevant screen and reproduce the original issue path
+2. Verify the fix resolves the reported issue (check Gherkin scenarios from investigation file)
+3. Test edge cases listed in the investigation file
+4. Verify no regressions in related functionality
+5. Take screenshots of before/after if helpful
 
-## Phase 5: Update Documentation
+**Document test results for investigation file update.**
 
-**If you navigated to screens/features without documentation, create them.**
+## Phase 5: Update Investigation File
 
-For missing operations:
-1. Create using template in `.agents/AI-INSTRUCTIONS.md`
-2. Add keywords to `.agents/operations/INDEX.md`
-3. Update `.agents/operations/NAVIGATION.md` if needed
+**Add implementation results to `.agents/investigations/[TICKET-ID].md`:**
 
-For missing terminology:
-1. Add to `.agents/reference/` with keywords in INDEX.md
+Append to the end of the file:
 
-For discovered patterns:
-1. Document in `.agents/architecture/` if cross-cutting
-2. Document in `.agents/architecture/integrations/` if external service
+```markdown
+---
 
-**Token limits**: operations=500, reference=500, architecture=500, INDEX=200
+## Implementation Results
 
-## Phase 6: Verify Documentation
+**Date**: [YYYY-MM-DD]
+**Implementer**: Claude
 
-```bash
-yarn lint:agents
+### Files Modified
+
+- `path/to/file1.ts` - [what was changed]
+- `path/to/file2.tsx` - [what was changed]
+
+### Changes Made
+
+1. [Change 1 description]
+2. [Change 2 description]
+3. [Change 3 description]
+
+### Testing Results
+
+**Gherkin Scenarios**: [🟢 All Pass | 🟡 Partial | 🔴 Failed]
+
+Scenario: [Scenario name]
+  Given [context]
+  When [action]
+  Then [outcome]
+  **Result**: [🟢 Pass | 🔴 Fail] - [explanation]
+
+**Edge Cases**: [🟢 All Pass | 🟡 Partial | 🔴 Failed]
+- [Edge case 1]: [🟢 Pass | 🔴 Fail] - [details]
+- [Edge case 2]: [🟢 Pass | 🔴 Fail] - [details]
+
+**Regressions**: [🟢 None | 🔴 Found]
+- [Description of any regressions found]
+
+### Screenshots
+
+[References to any before/after screenshots taken during verification]
+
+### Notes
+
+[Any additional observations, gotchas, or follow-up items]
 ```
 
-Fix any violations before completing.
+**This creates a complete audit trail from investigation → implementation.**
 
-## End of Response
+## Phase 6: Final Report
 
 Always include using color-coded status indicators:
 
 ### Status Color Legend
 - 🟢 **Green**: All good, verified accurate, no action needed
-- 🟡 **Yellow**: Suggestions exist, minor improvements recommended
-- 🔴 **Red**: Critical issues, missing docs, must address
+- 🟡 **Yellow**: Minor issues, improvements recommended
+- 🔴 **Red**: Critical issues, must address
 
 ```
-## Implementation Complete
+## Implementation Complete ✅
+
+**Investigation File**: `.agents/investigations/[TICKET-ID].md` - Updated with results
 
 **Files Modified**:
-- [list of code files changed]
+- [list of code files changed with brief description]
 
-**Documentation Status**: [🟢/🟡/🔴]
-- **Created**: [new .md files, or "None"]
-- **Updated**: [modified .md files, or "None"]
-- **Status**: 🟢 Verified accurate | 🟡 Minor gaps found | 🔴 Major gaps - docs created
+**Testing Status**: [🟢/🟡/🔴]
+- **Gherkin Scenarios**: [🟢 All Pass | 🟡 Partial | 🔴 Failed]
+- **Edge Cases**: [🟢 All Pass | 🟡 Partial | 🔴 Failed]
+- **Regressions**: [🟢 None | 🔴 Found]
 
-**Suggestions**: [🟢/🟡]
-- 🟢 None - documentation is complete
-- 🟡 [List suggestions: missing docs, keyword additions, corrections]
+**Overall Status**: [🟢/🟡/🔴]
+- 🟢 Ready to commit - all tests pass
+- 🟡 Ready with notes - minor issues documented
+- 🔴 Needs attention - [what needs fixing]
 
-**Lint Status**: 🟢 Pass | 🟡 Warnings | 🔴 Fail - [what needs fixing]
-
-**Testing**:
-- [How you verified the fix works]
+**Next Steps**:
+- Review changes and commit if satisfied
+- Address any 🟡 or 🔴 items if needed
+- Close the Jira ticket
 ```
-
-This ensures continuous improvement of the documentation.

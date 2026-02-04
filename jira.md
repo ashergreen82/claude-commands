@@ -72,53 +72,90 @@ You are investigating a Jira card. Your goal is to **understand the task thoroug
      Then [expected outcome]
    ```
 
-## Phase 2: Search Documentation
+## Phase 2: Parallel Documentation & UI Exploration
 
-**Use Task tool with Explore agent for efficient context management:**
+**First: Get navigation context**
+1. Quick read: `.agents/operations/NAVIGATION.md` to find the screen path
 
+**Then: Spawn TWO subagents in parallel (use two Task tool calls in same message):**
+
+### Subagent 1: Documentation Explorer
 ```
 Task tool with subagent_type=Explore:
-- Prompt: "Search documentation for [feature/screen] related to [keywords from Phase 1].
-  Check: AI-INSTRUCTIONS.md, product-overview.md, project-overview.md, operations/INDEX.md,
-  reference/INDEX.md, operations/NAVIGATION.md, architecture/INDEX.md, integrations/INDEX.md.
-  Find navigation path, existing operations, and relevant patterns."
+- Description: "Search documentation"
+- Prompt: "Search .agents/ documentation for [feature/screen] related to [keywords from Phase 1].
+
+  Check ALL of these:
+  - AI-INSTRUCTIONS.md (doc structure)
+  - product-overview.md (product context)
+  - project-overview.md (repo role)
+  - operations/INDEX.md (find relevant operations)
+  - reference/INDEX.md (terminology)
+  - architecture/INDEX.md (patterns like auth, state)
+  - integrations/INDEX.md (external services)
+
+  Return:
+  - Relevant documentation files found
+  - Existing vs missing operations
+  - Relevant architecture patterns
+  - Domain terminology needed"
 - Thoroughness: "medium"
 ```
 
-**The Explore agent will compress findings and return:**
-- Relevant documentation files
-- Navigation path to target screen
-- Existing vs missing operations
-- Relevant architecture patterns
+### Subagent 2: UI Explorer
+```
+Task tool with subagent_type=Explore:
+- Description: "Explore UI and recreate issue"
+- Prompt: "Use browser tools to explore the application and recreate the issue described in the Jira card.
 
-**Synthesize the results into your understanding.**
+  Navigation path (from NAVIGATION.md): [insert path here]
 
-## Phase 3: Explore the UI (REQUIRED)
+  Your tasks:
+  1. Navigate to the target screen using the path above
+  2. If you encounter screens you don't know how to navigate (like login), check `.agents/operations/[screen-name].md` for workflows
+  3. Observe current behavior vs expected behavior
+  4. Attempt to recreate the issue
+  5. Take screenshots of key states
+  6. Document what you observe
 
-**This phase is vital - you must observe and recreate the issue using browser tools.**
+  SCOPE LIMIT: Only read .agents/operations/ folder for navigation help. Don't read architecture or reference docs.
 
-**You verified browser tools in Phase 0. Now use them to explore:**
+  Return:
+  - Whether you successfully recreated the issue
+  - Screenshots and observations
+  - Current vs expected behavior
+  - Any additional findings"
+- Thoroughness: "medium"
+```
 
-**Browser Tool Priority:**
-- **Claude in Chrome** (if available): Use `mcp__claude-in-chrome__screenshot`, `mcp__claude-in-chrome__read_page`, etc.
-- **Playwright** (fallback): Use `mcp__playwright__browser_snapshot`, `mcp__playwright__browser_navigate`, etc.
+**Both subagents run simultaneously. When both return, synthesize their findings.**
 
-**Steps:**
-1. Start the application (navigate to the local dev URL or production URL)
-2. See the current page state using browser tools
-3. Navigate to the relevant screen following the navigation path from Phase 2
-4. Follow the operation steps to recreate the user's exact path
-5. Observe the current behavior - what does the UI actually show?
-6. **Attempt to recreate the issue** described in the Jira card
-7. Document what you observe vs what the Jira card describes
-8. Take screenshots of key states (before, during, after)
+## Phase 3: Review Subagent Findings
 
-**Required Output:**
-- Confirm you successfully recreated the bug (or explain why you couldn't)
-- Screenshots showing the actual vs expected behavior
-- Any additional observations not mentioned in the Jira card
+**Both subagents have returned their findings. Now synthesize:**
 
-If you cannot recreate the issue, ask the user for clarification before proceeding.
+### From Documentation Subagent:
+- Which operations exist vs missing?
+- What architecture patterns are relevant?
+- Any integration concerns?
+- Domain terminology to understand?
+
+### From UI Subagent:
+- Was the issue successfully recreated? (🟢/🔴)
+- What's the current vs expected behavior?
+- Screenshots and observations
+- Any additional findings?
+
+### Your Job:
+1. Identify gaps in understanding from both reports
+2. Cross-reference: Do UI observations match what docs describe?
+3. Note discrepancies between documented behavior and actual behavior
+4. If UI subagent couldn't recreate the issue, investigate why (missing context? wrong path? issue resolved?)
+
+**If the issue was NOT recreated successfully:**
+- Review the UI subagent's findings
+- You may need to manually explore using browser tools
+- Or ask the user for clarification before proceeding
 
 ## Phase 4: Interview Developer
 

@@ -250,31 +250,29 @@ Login → [operation chain] → Target Screen
 
 ## Phase 6: Checkpoint
 
-Report to user using color-coded status indicators:
-
-### Status Color Legend
-- 🟢 **Green**: All good, verified accurate, no action needed
-- 🟡 **Yellow**: Suggestions exist, minor improvements recommended
-- 🔴 **Red**: Critical issues, missing docs, must address before proceeding
+Report to user - keep it terse and scannable:
 
 ```
-## Investigation Complete
+## Investigation Complete ✅
 
-**Investigation File**: `.agents/investigations/[TICKET-ID].md` ✅ Created
+**File**: `.agents/investigations/[TICKET-ID].md`
 
-**Jira Summary**: [One sentence summary of the task]
+**Bug Recreation**: [🟢 Success | 🔴 Failed] - [one sentence]
 
-**Bug Recreation**: [🟢/🔴]
-- 🟢 Successfully recreated - [brief description]
-- 🔴 Could not recreate - [explanation]
+**Root Cause**: [one sentence technical explanation]
 
-**Root Cause**: [One sentence technical explanation]
+---
 
-**Files to Modify**: [count] files identified
+**Next Steps**:
+• Reply "proceed" to implement now
+• Reply "/clear" then paste below for fresh context
 
-**Ready to implement?**
-- Reply "proceed" or "/implement" to start implementation
-- Reply "refine" to continue investigating
+**Copy for fresh context**:
+```
+/implement
+
+Investigation: .agents/investigations/[TICKET-ID].md
+```
 ```
 
 Do not proceed to code until the developer confirms.

@@ -4,26 +4,27 @@ Documentation has been reviewed. Now implement the fix.
 
 ## Phase 1: Load Investigation Summary
 
-**CRITICAL: Start by reading the investigation file created by `/jira` command.**
+**CRITICAL: Read the investigation file created by `/jira` command.**
 
-1. **Read `.agents/investigations/[TICKET-ID].md`** - This contains:
-   - Acceptance criteria (Gherkin format)
-   - Bug recreation details
-   - Root cause analysis
-   - Files to modify
-   - Implementation plan
-   - Edge cases and testing strategy
+**If user provides investigation file path:**
+- Read that file immediately: `.agents/investigations/[TICKET-ID].md`
 
-2. **If investigation file is missing:**
-   - Ask user for the ticket ID
-   - Or request they run `/jira` first to investigate
-   - Do NOT proceed without understanding the context
+**If no path provided:**
+- Ask user: "Which investigation file should I read? (e.g., `.agents/investigations/TICKET-123.md`)"
+- Or ask for ticket ID to construct the path
 
-3. **Supplement with architecture docs only if needed:**
-   - **Operations**: `.agents/operations/` for screen-specific steps
-   - **Reference**: `.agents/reference/` for domain terminology
-   - **Architecture**: `.agents/architecture/` for patterns (auth, state, error handling)
-   - **Integrations**: `.agents/architecture/integrations/` for external services
+**Investigation file contains everything you need:**
+- Acceptance criteria (Gherkin format)
+- Bug recreation details
+- Root cause analysis
+- Files to modify
+- Implementation plan
+- Edge cases and testing strategy
+
+**Only supplement with other docs if needed:**
+- `.agents/operations/` - screen-specific workflows
+- `.agents/architecture/` - patterns (auth, state, error handling)
+- `.agents/reference/` - domain terminology
 
 ## Phase 2: Find the Code
 

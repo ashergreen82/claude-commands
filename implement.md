@@ -57,7 +57,7 @@ Documentation has been reviewed. Now implement the fix.
 
 ## Phase 5: Update Investigation File
 
-**Add implementation results to `.agents/investigations/[TICKET-ID].md`:**
+**Add implementation results to the investigation file (same file you read in Phase 1):**
 
 Append to the end of the file:
 
@@ -120,7 +120,7 @@ Always include using color-coded status indicators:
 ```
 ## Implementation Complete ✅
 
-**Investigation File**: `.agents/investigations/[TICKET-ID].md` - Updated with results
+**Investigation File**: [filename] - Updated with results
 
 **Files Modified**:
 - [list of code files changed with brief description]

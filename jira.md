@@ -169,12 +169,18 @@ Keep questions focused and batched (2-3 at a time max).
 
 ## Phase 5: Create Investigation Summary
 
-**Create `.agents/investigations/[TICKET-ID].md` with all findings:**
+**Determine filename:**
+- If ticket ID provided (e.g., JIRA-123, ABC-456): Use `[TICKET-ID].md`
+- If no ticket ID: Generate slug from description (e.g., "fix-login-button-mobile.md")
+- Keep filename lowercase with hyphens, descriptive but concise
+
+**Create `.agents/investigations/[filename].md` with all findings:**
 
 ```markdown
-# Investigation: [TICKET-ID] - [Brief Title]
+# Investigation: [Brief Title]
 
 **Date**: [YYYY-MM-DD]
+**Ticket**: [TICKET-ID or "N/A"]
 **Investigator**: Claude
 **Status**: Ready for Implementation
 
@@ -255,7 +261,7 @@ Report to user - keep it terse and scannable:
 ```
 ## Investigation Complete ✅
 
-**File**: `.agents/investigations/[TICKET-ID].md`
+**File**: `.agents/investigations/[filename].md`
 
 **Bug Recreation**: [🟢 Success | 🔴 Failed] - [one sentence]
 
@@ -271,7 +277,7 @@ Report to user - keep it terse and scannable:
 ```
 /implement
 
-Investigation: .agents/investigations/[TICKET-ID].md
+Investigation: .agents/investigations/[filename].md
 ```
 ```
 

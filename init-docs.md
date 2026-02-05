@@ -2,8 +2,6 @@
 
 You are setting up the `.agents/` documentation structure for just-in-time AI agent context.
 
-**⚠️ IMPORTANT**: This skill is synchronized with `audit-docs.md`. Any changes to structure, templates, or standards here MUST be reflected in `audit-docs.md`. Review both files when making updates.
-
 ## Phase 1: Detect Project Type
 
 Scan the repository for indicators:
@@ -91,7 +89,7 @@ This documentation helps you understand [PRODUCT_NAME]. Read this file first.
 
 ## Token Limits
 
-Run `npm run lint:docs` to check limits before committing.
+Run `node .agents/scripts/lint-docs.js` to check limits before committing.
 
 | Doc Type | Limit | Purpose |
 |----------|-------|---------|
@@ -119,8 +117,8 @@ External services this repo depends on: APIs, databases, queues.
 
 ## Writing Rules
 
-1. **Operations = what you can do**: Domain actions, API endpoints, jobs
-2. **Reference = definitions**: Reusable lookups, no action steps
+1. **Operations = what you can do**: UI "flows", Domain actions, API endpoints, jobs
+2. **Reference = definitions**: Reusable lookups, generic domain knowledge, no action steps
 3. **Architecture = how things work**: Patterns, not step-by-step
 4. **Brief is better**: Stay under token limits, link for details
 ```
@@ -173,312 +171,14 @@ Search this file for keywords. Add entries as documentation grows.
 -->
 ```
 
-**lint-docs.js** (create exactly as shown):
-```javascript
-#!/usr/bin/env node
+### Lint Scripts
 
-const fs = require('fs');
-const path = require('path');
+Copy lint scripts from templates:
+- Source: `~/.claude/templates/agents-lint/lint-docs.js`
+- Source: `~/.claude/templates/agents-lint/lint-structure.js`
+- Destination: `.agents/scripts/`
 
-const colors = {
-  red: '\x1b[31m',
-  yellow: '\x1b[33m',
-  green: '\x1b[32m',
-  reset: '\x1b[0m'
-};
-
-function getColor(percent) {
-  if (percent > 100) return colors.red;
-  if (percent > 90) return colors.yellow;
-  return colors.green;
-}
-
-const LIMITS = {
-  'AI-INSTRUCTIONS.md': 1000,
-  'product-overview.md': 500,
-  'project-overview.md': 100,
-  'INDEX.md': 200,
-  'operations': 500,
-  'workflows': 500,
-  'reference': 500,
-  'architecture': 500,
-  'integrations': 500,
-  'default': 500
-};
-
-function estimateTokens(text) {
-  const words = text.split(/\s+/).filter(w => w.length > 0).length;
-  const codeBlocks = (text.match(/```[\s\S]*?```/g) || []).length;
-  const specialChars = (text.match(/[|#*\->`]/g) || []).length;
-  return Math.ceil(words * 1.3 + specialChars * 0.1 + codeBlocks * 10);
-}
-
-let tokenize = null;
-try {
-  const { encode } = require('gpt-tokenizer');
-  tokenize = (text) => encode(text).length;
-  console.log('Using gpt-tokenizer for accurate token counts\n');
-} catch {
-  tokenize = estimateTokens;
-  console.log('Using word-based estimation (install gpt-tokenizer for accuracy)\n');
-}
-
-function getLimit(filePath) {
-  const fileName = path.basename(filePath);
-  const parentDir = path.basename(path.dirname(filePath));
-  if (fileName === 'AI-INSTRUCTIONS.md') return LIMITS['AI-INSTRUCTIONS.md'];
-  if (fileName === 'product-overview.md') return LIMITS['product-overview.md'];
-  if (fileName === 'project-overview.md') return LIMITS['project-overview.md'];
-  if (fileName === 'INDEX.md') return LIMITS['INDEX.md'];
-  if (parentDir === 'operations') return LIMITS['operations'];
-  if (parentDir === 'workflows') return LIMITS['workflows'];
-  if (parentDir === 'reference') return LIMITS['reference'];
-  if (parentDir === 'architecture') return LIMITS['architecture'];
-  if (parentDir === 'integrations') return LIMITS['integrations'];
-  return LIMITS['default'];
-}
-
-function getLimitLabel(filePath) {
-  const fileName = path.basename(filePath);
-  const parentDir = path.basename(path.dirname(filePath));
-  if (fileName === 'AI-INSTRUCTIONS.md') return 'base doc';
-  if (fileName === 'product-overview.md') return 'product';
-  if (fileName === 'project-overview.md') return 'project';
-  if (fileName === 'INDEX.md') return 'index';
-  if (parentDir === 'operations') return 'operation';
-  if (parentDir === 'workflows') return 'workflow';
-  if (parentDir === 'reference') return 'reference';
-  if (parentDir === 'architecture') return 'architecture';
-  if (parentDir === 'integrations') return 'integration';
-  return 'doc';
-}
-
-function findMarkdownFiles(dir) {
-  const files = [];
-  const skipDirs = ['scripts', '.scratch'];
-  function walk(currentDir) {
-    if (!fs.existsSync(currentDir)) return;
-    const entries = fs.readdirSync(currentDir, { withFileTypes: true });
-    for (const entry of entries) {
-      const fullPath = path.join(currentDir, entry.name);
-      if (entry.isDirectory() && !skipDirs.includes(entry.name)) {
-        walk(fullPath);
-      } else if (entry.isFile() && entry.name.endsWith('.md')) {
-        files.push(fullPath);
-      }
-    }
-  }
-  walk(dir);
-  return files;
-}
-
-function createBar(percent) {
-  const width = 20;
-  const filled = Math.min(Math.round((percent / 100) * width), width);
-  const empty = width - filled;
-  const overFilled = percent > 100 ? Math.min(percent - 100, 50) / 50 * 5 : 0;
-  const color = getColor(percent);
-  let bar = '█'.repeat(filled) + '░'.repeat(empty);
-  if (percent > 100) {
-    bar = '█'.repeat(width) + '▓'.repeat(Math.round(overFilled));
-  }
-  return `${color}[${bar}] ${percent}%${colors.reset}`;
-}
-
-function lintDocs() {
-  const agentsDir = path.resolve(__dirname, '..');
-  const files = findMarkdownFiles(agentsDir);
-  if (files.length === 0) {
-    console.log('No markdown files found in .agents/');
-    return 0;
-  }
-  const results = [];
-  let hasErrors = false;
-  for (const filePath of files) {
-    const content = fs.readFileSync(filePath, 'utf-8');
-    const tokens = tokenize(content);
-    const limit = getLimit(filePath);
-    const relativePath = path.relative(agentsDir, filePath);
-    const label = getLimitLabel(filePath);
-    const status = tokens <= limit ? 'PASS' : 'FAIL';
-    const percent = Math.round((tokens / limit) * 100);
-    if (tokens > limit) hasErrors = true;
-    results.push({ path: relativePath, tokens, limit, label, status, percent, over: tokens - limit });
-  }
-  results.sort((a, b) => {
-    if (a.status !== b.status) return a.status === 'FAIL' ? -1 : 1;
-    return b.tokens - a.tokens;
-  });
-  console.log('Limits: base=1000 | product=500 | project=100 | ops/ref/arch=500 | index=200\n');
-  console.log('Token Limits for .agents/ Documentation');
-  console.log('═'.repeat(60));
-  for (const r of results) {
-    const color = getColor(r.percent);
-    const icon = r.status === 'PASS' ? '✓' : '✗';
-    const bar = createBar(r.percent);
-    console.log(`${color}${icon} ${r.path}${colors.reset}`);
-    console.log(`  ${bar} ${r.tokens}/${r.limit} tokens (${r.label})`);
-    if (r.status === 'FAIL') {
-      console.log(`  ${colors.red}⚠ Over by ${r.over} tokens - needs trimming${colors.reset}`);
-    }
-    console.log();
-  }
-  console.log('═'.repeat(60));
-  const passed = results.filter(r => r.status === 'PASS').length;
-  const failed = results.filter(r => r.status === 'FAIL').length;
-  const totalTokens = results.reduce((sum, r) => sum + r.tokens, 0);
-  console.log(`Total: ${totalTokens} tokens across ${results.length} files`);
-  console.log(`${colors.green}Passed: ${passed}${colors.reset} | ${failed > 0 ? colors.red : colors.green}Failed: ${failed}${colors.reset}`);
-  if (hasErrors) {
-    console.log(`\n${colors.red}✗ Documentation exceeds token limits${colors.reset}`);
-    return 1;
-  } else {
-    console.log(`\n${colors.green}✓ All documentation within limits${colors.reset}`);
-    return 0;
-  }
-}
-
-const exitCode = lintDocs();
-process.exit(exitCode);
-```
-
-**lint-structure.js** (create exactly as shown):
-```javascript
-#!/usr/bin/env node
-
-const fs = require('fs');
-const path = require('path');
-
-const colors = {
-  red: '\x1b[31m',
-  yellow: '\x1b[33m',
-  green: '\x1b[32m',
-  cyan: '\x1b[36m',
-  reset: '\x1b[0m'
-};
-
-const REQUIRED_FILES = ['AI-INSTRUCTIONS.md', 'product-overview.md', 'project-overview.md'];
-const REQUIRED_FOLDERS = ['operations', 'reference', 'architecture', 'scripts'];
-const OPTIONAL_ITEMS = ['.scratch'];
-const ARCHITECTURE_REQUIRED = ['integrations'];
-
-function lintStructure() {
-  const agentsDir = path.resolve(__dirname, '..');
-  const errors = [];
-  const passes = [];
-  console.log(`${colors.cyan}Structure Linter for .agents/${colors.reset}\n`);
-  if (!fs.existsSync(agentsDir)) {
-    console.log(`${colors.red}✗ .agents/ directory does not exist${colors.reset}`);
-    console.log(`  Run /init-docs to create the structure\n`);
-    return 1;
-  }
-  const rootItems = fs.readdirSync(agentsDir, { withFileTypes: true });
-  const rootFiles = rootItems.filter(i => i.isFile()).map(i => i.name);
-  const rootFolders = rootItems.filter(i => i.isDirectory()).map(i => i.name);
-  console.log('Required Files:');
-  for (const file of REQUIRED_FILES) {
-    const filePath = path.join(agentsDir, file);
-    if (fs.existsSync(filePath)) {
-      passes.push(`Required file: ${file}`);
-      console.log(`  ${colors.green}✓${colors.reset} ${file}`);
-    } else {
-      errors.push(`Missing required file: ${file}`);
-      console.log(`  ${colors.red}✗${colors.reset} ${file} ${colors.red}(missing)${colors.reset}`);
-    }
-  }
-  console.log('\nRequired Folders:');
-  for (const folder of REQUIRED_FOLDERS) {
-    const folderPath = path.join(agentsDir, folder);
-    if (fs.existsSync(folderPath) && fs.statSync(folderPath).isDirectory()) {
-      passes.push(`Required folder: ${folder}/`);
-      console.log(`  ${colors.green}✓${colors.reset} ${folder}/`);
-    } else {
-      errors.push(`Missing required folder: ${folder}/`);
-      console.log(`  ${colors.red}✗${colors.reset} ${folder}/ ${colors.red}(missing)${colors.reset}`);
-    }
-  }
-  const allowedItems = [...REQUIRED_FILES, ...REQUIRED_FOLDERS, ...OPTIONAL_ITEMS];
-  const allRootItems = [...rootFiles, ...rootFolders];
-  const unexpectedItems = allRootItems.filter(item => !allowedItems.includes(item));
-  if (unexpectedItems.length > 0) {
-    console.log('\nUnexpected Items at Root:');
-    for (const item of unexpectedItems) {
-      const isDir = rootFolders.includes(item);
-      errors.push(`Unexpected at root: ${item}${isDir ? '/' : ''}`);
-      console.log(`  ${colors.red}✗${colors.reset} ${item}${isDir ? '/' : ''} ${colors.red}(not allowed)${colors.reset}`);
-    }
-  }
-  const archPath = path.join(agentsDir, 'architecture');
-  if (fs.existsSync(archPath)) {
-    console.log('\nArchitecture Structure:');
-    for (const required of ARCHITECTURE_REQUIRED) {
-      const subPath = path.join(archPath, required);
-      if (fs.existsSync(subPath) && fs.statSync(subPath).isDirectory()) {
-        passes.push(`architecture/${required}/ exists`);
-        console.log(`  ${colors.green}✓${colors.reset} architecture/${required}/`);
-      } else {
-        errors.push(`Missing: architecture/${required}/`);
-        console.log(`  ${colors.red}✗${colors.reset} architecture/${required}/ ${colors.red}(missing)${colors.reset}`);
-      }
-    }
-  }
-  console.log('\nINDEX.md Checks:');
-  const foldersToCheck = [...REQUIRED_FOLDERS.filter(f => f !== 'scripts'), 'architecture/integrations'];
-  for (const folderRel of foldersToCheck) {
-    const folderPath = path.join(agentsDir, folderRel);
-    if (!fs.existsSync(folderPath)) continue;
-    const items = fs.readdirSync(folderPath, { withFileTypes: true });
-    const mdFiles = items.filter(i => i.isFile() && i.name.endsWith('.md'));
-    const hasIndex = mdFiles.some(f => f.name === 'INDEX.md');
-    const isMainFolder = REQUIRED_FOLDERS.includes(folderRel) || folderRel === 'architecture/integrations';
-    if (isMainFolder || mdFiles.length > 0) {
-      if (hasIndex) {
-        passes.push(`${folderRel}/INDEX.md exists`);
-        console.log(`  ${colors.green}✓${colors.reset} ${folderRel}/INDEX.md`);
-      } else {
-        errors.push(`Missing: ${folderRel}/INDEX.md`);
-        console.log(`  ${colors.red}✗${colors.reset} ${folderRel}/INDEX.md ${colors.red}(missing)${colors.reset}`);
-      }
-    }
-  }
-  for (const folder of ['operations', 'reference', 'architecture']) {
-    const folderPath = path.join(agentsDir, folder);
-    if (!fs.existsSync(folderPath)) continue;
-    checkSubfoldersForIndex(folderPath, folder, errors, passes);
-  }
-  console.log('\n' + '═'.repeat(50));
-  console.log(`${colors.green}Passed: ${passes.length}${colors.reset}`);
-  if (errors.length > 0) {
-    console.log(`${colors.red}Failed: ${errors.length}${colors.reset}`);
-    console.log(`\n${colors.red}✗ Structure validation failed${colors.reset}`);
-    return 1;
-  } else {
-    console.log(`\n${colors.green}✓ Structure is valid${colors.reset}`);
-    return 0;
-  }
-}
-
-function checkSubfoldersForIndex(folderPath, relativePath, errors, passes) {
-  const items = fs.readdirSync(folderPath, { withFileTypes: true });
-  const subfolders = items.filter(i => i.isDirectory() && !i.name.startsWith('.'));
-  for (const subfolder of subfolders) {
-    if (relativePath === 'architecture' && subfolder.name === 'integrations') continue;
-    const subPath = path.join(folderPath, subfolder.name);
-    const subRel = `${relativePath}/${subfolder.name}`;
-    const subItems = fs.readdirSync(subPath, { withFileTypes: true });
-    const hasMdFiles = subItems.some(i => i.isFile() && i.name.endsWith('.md'));
-    const hasIndex = subItems.some(i => i.isFile() && i.name === 'INDEX.md');
-    if (hasMdFiles && !hasIndex) {
-      errors.push(`Missing: ${subRel}/INDEX.md (folder has .md files)`);
-      console.log(`  ${colors.red}✗${colors.reset} ${subRel}/INDEX.md ${colors.red}(folder has docs but no index)${colors.reset}`);
-    }
-    checkSubfoldersForIndex(subPath, subRel, errors, passes);
-  }
-}
-
-const exitCode = lintStructure();
-process.exit(exitCode);
-```
+If templates don't exist, create them with embedded fallback versions (see Appendix A).
 
 ## Phase 4: Update .gitignore
 
@@ -488,7 +188,7 @@ Append to `.gitignore` (create if doesn't exist):
 .agents/.scratch/
 ```
 
-## Phase 5: Add npm Scripts
+## Phase 5: Add npm Scripts (if applicable)
 
 If `package.json` exists, add these scripts:
 ```json
@@ -497,7 +197,59 @@ If `package.json` exists, add these scripts:
 "lint:agents": "node .agents/scripts/lint-structure.js && node .agents/scripts/lint-docs.js"
 ```
 
-## Phase 6: Report
+## Phase 6: Install Git Hooks (Optional)
+
+Use `AskUserQuestion` to ask the user:
+
+**Question**: "Would you like to install a git pre-commit hook to enforce documentation linting?"
+- **Options**:
+  - "Yes (Recommended)" - Install pre-commit hook that runs both linters
+  - "No" - Skip hook installation
+
+### If user approves:
+
+Create `.git/hooks/pre-commit` with this content:
+
+```bash
+#!/bin/sh
+
+# Pre-commit hook for .agents/ documentation linting
+# Runs both token limit and structure validation
+
+echo "Running .agents/ documentation lints..."
+echo ""
+
+# Run token limit check
+node .agents/scripts/lint-docs.js
+DOCS_EXIT=$?
+
+echo ""
+
+# Run structure check
+node .agents/scripts/lint-structure.js
+STRUCTURE_EXIT=$?
+
+echo ""
+
+# Fail if either check failed
+if [ $DOCS_EXIT -ne 0 ] || [ $STRUCTURE_EXIT -ne 0 ]; then
+    echo "Pre-commit hook failed. Fix the issues above before committing."
+    exit 1
+fi
+
+echo "All .agents/ checks passed."
+exit 0
+```
+
+**Note**: The `.git/hooks/` directory is local and not version-controlled. If the team needs shared hooks, consider documenting how to set them up or using a tool like husky/lefthook.
+
+### If user declines:
+
+Skip hook installation. Inform the user they can manually run lints with:
+- `node .agents/scripts/lint-docs.js`
+- `node .agents/scripts/lint-structure.js`
+
+## Phase 7: Report
 
 When complete, output:
 
@@ -521,10 +273,11 @@ When complete, output:
 - .agents/.scratch/.gitkeep
 - Updated .gitignore
 - Added npm scripts (if package.json exists)
+- Installed pre-commit hook (if approved)
 
 ### Next Steps
 1. Fill in product-overview.md with product details
-2. Run `npm run lint:agents` to verify setup
+2. Run `node .agents/scripts/lint-docs.js` to verify setup
 3. Add operations/reference/architecture docs as needed
 ```
 
@@ -534,3 +287,19 @@ When complete, output:
 - **Always create all folders** even if the project type doesn't obviously need them
 - **Keep INDEX.md minimal** - just header and example comment
 - **project-overview.md must be under 100 tokens** - enforce brevity
+
+---
+
+## Appendix A: Lint Script Fallbacks
+
+If `~/.claude/templates/agents-lint/` doesn't exist, use these embedded versions.
+
+**Note**: Prefer using templates from `~/.claude/templates/agents-lint/` to maintain single source of truth. Only use these fallbacks if templates are unavailable.
+
+### lint-docs.js (fallback)
+
+Read from: `~/.claude/templates/agents-lint/lint-docs.js`
+
+### lint-structure.js (fallback)
+
+Read from: `~/.claude/templates/agents-lint/lint-structure.js`

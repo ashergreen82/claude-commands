@@ -108,7 +108,13 @@ Scenario: [Scenario name]
 
 **This creates a complete audit trail from investigation → implementation.**
 
-## Phase 6: Final Report
+## Phase 6: Documentation Review
+
+**Run `/doc-update` to check if `.agents/` documentation needs updates based on this implementation.**
+
+If suggestions are returned, ask the user which (if any) to implement before finalizing. If no suggestions, proceed to Final Report.
+
+## Phase 7: Final Report
 
 Always include using color-coded status indicators:
 

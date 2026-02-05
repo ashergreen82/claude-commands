@@ -51,20 +51,69 @@ Documentation has been reviewed. Now implement the fix.
 
 **Iterative TDD cycle - repeat until tests pass (max 3 iterations):**
 
-**Each Iteration:**
+### Iteration 1: Initial Implementation (Sonnet)
+
+**You (main agent) handle the first iteration:**
 1. Write/modify implementation code to make tests pass
 2. Follow existing patterns from architecture docs
 3. Keep changes focused - don't over-engineer
 4. Run tests and check results
 
-**Iteration Tracking:**
-- **Iteration 1-3**: If tests fail, analyze failures and repeat Phase 4
-- **After 3 failed iterations**: Stop and ask user for guidance - something fundamental may be wrong with the approach
+**If tests pass**: Proceed to Phase 5 ✅
+
+**If tests fail**: Continue to Iteration 2 with focused context
+
+---
+
+### Iterations 2-3: Focused Fixes (Haiku)
+
+**Use Task tool with model: "haiku" for cost efficiency:**
+
+```
+Task tool parameters:
+- subagent_type: "general-purpose"
+- model: "haiku"
+- description: "Fix failing tests iteration [2/3]"
+- prompt: "You are fixing test failures in an implementation.
+
+  **Investigation File**: [path to investigation file]
+
+  **Test Failures** (from iteration [previous]):
+  [paste test output showing failures]
+
+  **Files Modified So Far**:
+  [list files and brief description of changes made]
+
+  **Your Task**:
+  1. Read the failing test files to understand what's expected
+  2. Read the implementation files that were modified
+  3. Analyze the test failures and identify the issue
+  4. Make focused fixes to address the failures
+  5. Run tests again
+  6. Report back: what you changed and whether tests now pass
+
+  Do NOT over-engineer. Make minimal changes to fix the specific test failures.
+
+  If tests pass, report success.
+  If tests still fail after your fixes, report the new failures so iteration [next] can continue."
+```
+
+**After Haiku Agent Returns**:
+- **If tests pass**: Proceed to Phase 5 ✅
+- **If tests still fail AND iteration < 3**: Repeat with iteration 3
+- **If tests still fail AND iteration = 3**: Stop and ask user for guidance - something fundamental may be wrong with the approach
+
+---
 
 **Success Criteria:**
 - All tests written in Phase 3 pass ✅
 - No new test failures introduced
 - Code follows existing patterns
+
+**Token Optimization Notes:**
+- Iteration 1 uses full context (Sonnet or Opus) for architectural understanding
+- Iterations 2-3 use focused context (Haiku) for ~60% cost reduction
+- Haiku gets only: test failures + implementation files + investigation path
 
 ## Phase 5: Verify Via Browser (UI Projects Only)
 
@@ -79,12 +128,39 @@ Documentation has been reviewed. Now implement the fix.
 - **Claude in Chrome** (preferred): Use `mcp__claude-in-chrome__*` tools for testing
 - **Playwright** (fallback): Use `mcp__playwright__*` tools if Claude in Chrome unavailable
 
-**Verification Steps:**
-1. Navigate to the relevant screen and reproduce the original issue path
-2. Verify the fix resolves the reported issue (check Gherkin scenarios from investigation file)
-3. Test edge cases listed in the investigation file
-4. Verify no regressions in related functionality
-5. Take screenshots of before/after if helpful
+---
+
+### Recipe-Based Verification (No Re-Discovery!)
+
+**Read the investigation file's "Browser Verification Recipe" section. It contains everything you need.**
+
+**Step 1: Execute Navigation Recipe**
+- Follow "Step-by-Step Navigation" exactly as documented
+- Do NOT explore or figure out navigation yourself
+- Each step is already verified to work from jira investigation
+
+**Step 2: Execute Reproduction Steps**
+- Follow "Reproduction Steps" exactly as documented
+- These are the exact steps that triggered the bug before
+- **Now verify the "Expected Result (after fix)" occurs instead of the bug**
+
+**Step 3: Run Through Verification Checklist**
+- Test each item in "Verification Checklist" from the investigation file
+- Mark each as 🟢 Pass or 🔴 Fail
+- Examples:
+  - Primary Scenario: 🟢 Pass - [brief confirmation]
+  - Edge Case 1: 🟢 Pass - [brief confirmation]
+  - Regression Check: 🟢 Pass - [brief confirmation]
+
+**Step 4: Screenshots (Minimal)**
+- Take "after fix" screenshot of the target element (referenced in "Screenshots Reference")
+- Only screenshot what's needed to show the fix worked
+- Compare visually to "expected visual change" from recipe
+
+**Token Optimization:**
+- No exploration: Just execute documented steps (~60-70% token reduction)
+- No re-discovery: Navigation path already known
+- Focused: Only test what's in the checklist
 
 **Document test results for investigation file update.**
 

@@ -116,15 +116,19 @@ Task tool with subagent_type=Explore:
   3. Observe current behavior vs expected behavior
   4. Attempt to recreate the issue
   5. Take screenshots of key states
-  6. Document what you observe
+  6. **CRITICAL**: Document EXACT STEP-BY-STEP actions for reproduction (this will be used for verification after fix)
 
   SCOPE LIMIT: Only read .agents/operations/ folder for navigation help. Don't read architecture or reference docs.
 
-  Return:
-  - Whether you successfully recreated the issue
+  Return (structured format):
+  - Whether you successfully recreated the issue (🟢/🔴)
+  - **Step-by-Step Navigation** (detailed list from app start to target screen)
+  - **Reproduction Steps** (exact actions that trigger the bug)
+  - **Observed vs Expected Behavior** (what happens vs what should happen)
   - Screenshots and observations
-  - Current vs expected behavior
-  - Any additional findings"
+  - **Verification Checklist Items** (what should be tested after fix: primary scenario, edge cases, regressions)
+
+  Make your response detailed enough that another agent could replay your exact steps without exploration."
 - Thoroughness: "medium"
 ```
 
@@ -214,6 +218,35 @@ Login → [operation chain] → Target Screen
 **Operations Consulted**:
 - `.agents/operations/[file].md` - [brief description]
 - [Additional files...]
+
+## Browser Verification Recipe
+
+**⚠️ This section is designed for implement.md to consume directly. Be specific and executable.**
+
+### Step-by-Step Navigation (from app start)
+1. [Action 1] - e.g., "Click 'Login' button"
+2. [Action 2] - e.g., "Enter email: test@example.com"
+3. [Action 3] - e.g., "Enter password: test123"
+4. [Continue until you reach the target screen]
+5. Final step: "You should now be on [Target Screen Name]"
+
+### Reproduction Steps (to trigger the bug)
+1. [Exact step that triggers the bug]
+2. [Next step]
+3. [Final step]
+4. **Observed Result (before fix)**: [What you saw - the bug]
+5. **Expected Result (after fix)**: [What should happen instead]
+
+### Verification Checklist (test after implementation)
+- [ ] **Primary Scenario**: [One-line description] - Expected: [specific outcome]
+- [ ] **Edge Case 1**: [Description] - Expected: [specific outcome]
+- [ ] **Edge Case 2**: [Description] - Expected: [specific outcome]
+- [ ] **Regression Check**: [Related feature to verify] - Expected: [should still work]
+
+### Screenshots Reference
+- Before fix: [Screenshot ID or description]
+- Target element: [What to look for - e.g., "Submit button in bottom right"]
+- After fix should show: [Expected visual change]
 
 ## Root Cause Analysis
 

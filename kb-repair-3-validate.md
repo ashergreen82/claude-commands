@@ -1,10 +1,31 @@
-# Audit Validate - Verify Documentation Structure
+# KB Repair Validate - Verify Documentation Structure
 
-You are validating the `.agents/` documentation structure after migration.
+You are validating the `.agents/` documentation structure after repairs.
+
+## Workflow Position
+
+This is **step 3 of 3** in the `kb-repair` workflow. See `workflows.json` for details.
+
+```
+  kb-repair-1-analyze
+  kb-repair-2-fix
+→ kb-repair-3-validate (you are here)
+```
+
+## Prerequisite Check
+
+**Check if this follows a repair workflow:**
+
+Check for: `.agents/.scratch/audit-state.json` with `phase="repaired"`
+
+- **If found**: Include repair summary in final report
+- **If NOT found**: This is a standalone validation (acceptable)
+
+**Note**: Unlike other step 3 commands, validation CAN run independently to verify structure at any time. If running after repair, it will include the repair summary.
 
 ## Phase 1: Check Prerequisites
 
-Verify `.agents/` directory exists. If not, inform user to run `/init-docs` first.
+Verify `.agents/` directory exists. If not, inform user to run `/create-agents-folder` first.
 
 Check for lint scripts:
 - `.agents/scripts/lint-structure.js`
@@ -43,8 +64,8 @@ Analyze the lint output for:
 
 ## Phase 4: Load Migration State (Optional)
 
-If `.agents/.scratch/audit-state.json` exists with phase="migrated":
-- Include migration summary in report
+If `.agents/.scratch/audit-state.json` exists with phase="repaired":
+- Include repair summary in report
 - Compare before/after state
 - Clean up state file after successful validation
 
@@ -74,8 +95,8 @@ If `.agents/.scratch/audit-state.json` exists with phase="migrated":
 1. product-overview.md exceeds limit by 20 tokens - consider trimming
 2. reference/INDEX.md is missing
 
-### Migration Summary (if applicable)
-- Files migrated: X
+### Repair Summary (if applicable)
+- Files repaired: X
 - Folders cleaned: X
 - State file: [Cleaned up|Retained for review]
 ```
@@ -108,7 +129,7 @@ If validation passed and state file exists:
 
 Ask user:
 ```
-"Validation passed. Clean up audit state file?"
+"Validation passed. Clean up state file?"
 Options:
 - Yes, remove .agents/.scratch/audit-state.json
 - Keep for reference

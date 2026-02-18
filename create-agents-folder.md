@@ -1,4 +1,4 @@
-# Initialize Agent Documentation
+# Create Agents Folder
 
 You are setting up the `.agents/` documentation structure for just-in-time AI agent context.
 
@@ -32,27 +32,21 @@ Use `AskUserQuestion` to confirm:
 
 ## Phase 3: Create Structure
 
-Create the following structure. **All folders must be created even if empty.**
+**Load the structure schema** from `~/.xvw-agents/templates/agents-lint/structure-schema.json` - this is the single source of truth for the `.agents/` folder structure.
 
-```
-.agents/
-├── AI-INSTRUCTIONS.md
-├── product-overview.md
-├── project-overview.md
-├── operations/
-│   └── INDEX.md
-├── reference/
-│   └── INDEX.md
-├── architecture/
-│   ├── INDEX.md
-│   └── integrations/
-│       └── INDEX.md
-├── scripts/
-│   ├── lint-docs.js
-│   └── lint-structure.js
-└── .scratch/
-    └── .gitkeep
-```
+The schema defines:
+- `requiredFiles` - Files to create at `.agents/` root
+- `requiredFolders` - Folders to create at `.agents/` root (each gets an `INDEX.md`)
+- `optionalItems` - Items that may exist (like `.scratch/`)
+- `nestedRequirements` - Required subfolders (e.g., `architecture/integrations/`)
+
+**Create the structure based on the schema:**
+1. Create `.agents/` directory
+2. Create each file in `requiredFiles` using templates below
+3. Create each folder in `requiredFolders` with an `INDEX.md` inside
+4. Create nested folders from `nestedRequirements` with `INDEX.md` files
+5. Create `.scratch/` folder (from `optionalItems`) - this is gitignored, used for temp workflow state
+6. Copy lint scripts to `.agents/scripts/`
 
 ### File Contents
 
@@ -73,19 +67,7 @@ This documentation helps you understand [PRODUCT_NAME]. Read this file first.
 
 ## Documentation Structure
 
-.agents/
-├── AI-INSTRUCTIONS.md       # Start here (this file)
-├── product-overview.md      # What is the product?
-├── project-overview.md      # What does this repo do?
-├── operations/              # Domain operations (grouped by domain)
-│   └── INDEX.md
-├── reference/               # Terminology and definitions
-│   └── INDEX.md
-├── architecture/            # Patterns and integrations
-│   ├── INDEX.md
-│   └── integrations/        # External service dependencies
-│       └── INDEX.md
-└── scripts/                 # Utility scripts
+[GENERATE FROM SCHEMA: Build a tree visualization from `.agents/scripts/structure-schema.json` showing requiredFiles, requiredFolders with INDEX.md files, and nestedRequirements. Add brief comments explaining each item's purpose.]
 
 ## Token Limits
 
@@ -173,12 +155,12 @@ Search this file for keywords. Add entries as documentation grows.
 
 ### Lint Scripts
 
-Copy lint scripts from templates:
-- Source: `~/.claude/templates/agents-lint/lint-docs.js`
-- Source: `~/.claude/templates/agents-lint/lint-structure.js`
-- Destination: `.agents/scripts/`
+Copy lint scripts and schema from templates:
+- `~/.xvw-agents/templates/agents-lint/lint-docs.js` → `.agents/scripts/lint-docs.js`
+- `~/.xvw-agents/templates/agents-lint/lint-structure.js` → `.agents/scripts/lint-structure.js`
+- `~/.xvw-agents/templates/agents-lint/structure-schema.json` → `.agents/scripts/structure-schema.json`
 
-If templates don't exist, create them with embedded fallback versions (see Appendix A).
+The `structure-schema.json` in `.agents/scripts/` becomes the local source of truth for this repo's structure validation.
 
 ## Phase 4: Update .gitignore
 
@@ -270,7 +252,7 @@ When complete, output:
 - .agents/architecture/integrations/INDEX.md
 - .agents/scripts/lint-docs.js
 - .agents/scripts/lint-structure.js
-- .agents/.scratch/.gitkeep
+- .agents/.scratch/ (gitignored)
 - Updated .gitignore
 - Added npm scripts (if package.json exists)
 - Installed pre-commit hook (if approved)
@@ -290,16 +272,11 @@ When complete, output:
 
 ---
 
-## Appendix A: Lint Script Fallbacks
+## Appendix A: Template Location
 
-If `~/.claude/templates/agents-lint/` doesn't exist, use these embedded versions.
+All templates are in `~/.xvw-agents/templates/agents-lint/`:
+- `lint-docs.js` - Token limit validation
+- `lint-structure.js` - Structure validation
+- `structure-schema.json` - **Single source of truth** for folder structure
 
-**Note**: Prefer using templates from `~/.claude/templates/agents-lint/` to maintain single source of truth. Only use these fallbacks if templates are unavailable.
-
-### lint-docs.js (fallback)
-
-Read from: `~/.claude/templates/agents-lint/lint-docs.js`
-
-### lint-structure.js (fallback)
-
-Read from: `~/.claude/templates/agents-lint/lint-structure.js`
+If templates don't exist, the user needs to install the XVWeb.Agents shared commands first.

@@ -1,16 +1,44 @@
-# Audit Migrate - Plan and Execute Documentation Migration
+# KB Repair Fix - Plan and Execute Documentation Repairs
 
-You are migrating non-standard `.agents/` documentation to the standard structure.
+You are repairing non-standard `.agents/` documentation to match the standard structure.
 
-## Phase 1: Load or Create State
+## Workflow Position
 
-Check for `.agents/.scratch/audit-state.json`:
-- **If exists with phase="scanned"**: Load findings and continue
-- **If missing or stale**: Inform user to run `/audit-scan` first, or offer to run it now
+This is **step 2 of 3** in the `kb-repair` workflow. See `workflows.json` for details.
 
-## Phase 2: Interview User About Migrations
+```
+  kb-repair-1-analyze
+→ kb-repair-2-fix (you are here)
+  kb-repair-3-validate
+```
 
-Spawn a **general-purpose subagent** to conduct interviews and build migration plan:
+## Prerequisite Check (MANDATORY)
+
+**Before proceeding, verify the previous step was completed:**
+
+Check for: `.agents/.scratch/audit-state.json` with `phase="scanned"`
+
+- **If found**: Continue to Phase 1
+- **If NOT found**: Output this message and STOP:
+
+```
+⚠️ PREREQUISITE MISSING
+
+This is step 2 of the **kb-repair** workflow.
+Step 1 (`/kb-repair-1-analyze`) must be completed first.
+
+Expected artifact: `.agents/.scratch/audit-state.json`
+
+Run `/kb-repair-1-analyze` to start the workflow.
+```
+
+## Phase 1: Load State
+
+Load findings from `.agents/.scratch/audit-state.json` and continue.
+
+## Phase 2: Interview User About Repairs
+
+Spawn a **general-purpose subagent** to conduct interviews and build repair plan:
 
 ```
 You have these scan findings:
@@ -73,7 +101,7 @@ Options:
 - Yes, install hook (Recommended)
 - Skip
 
-BUILD MIGRATION PLAN as JSON:
+BUILD REPAIR PLAN as JSON:
 {
   "moves": [
     {"from": "docs/infrastructure/NGINX.md", "to": "architecture/devops/NGINX.md"}
@@ -94,12 +122,12 @@ BUILD MIGRATION PLAN as JSON:
 }
 ```
 
-## Phase 3: Present Migration Plan
+## Phase 3: Present Repair Plan
 
 Display the plan in a clear table format:
 
 ```markdown
-## Proposed Migration Plan
+## Proposed Repair Plan
 
 ### Files to Move
 | From | To |
@@ -127,21 +155,21 @@ Display the plan in a clear table format:
 
 Then ask:
 ```
-"Ready to execute this migration plan?"
+"Ready to execute this repair plan?"
 Options:
 - Proceed with all changes
 - Review each change individually
 - Cancel
 ```
 
-## Phase 4: Execute Migration
+## Phase 4: Execute Repairs
 
 **Only after explicit user approval.**
 
 Spawn a **Bash subagent** for file operations:
 
 ```
-Execute these file operations for .agents/ migration.
+Execute these file operations for .agents/ repair.
 
 OPERATIONS:
 {migration plan JSON}
@@ -173,9 +201,12 @@ For each folder that received new files, update its INDEX.md with keyword entrie
 
 If user approved lint scripts:
 1. Create `.agents/scripts/` if missing
-2. Read lint script templates from `~/.claude/templates/agents-lint/`
+2. Read lint script templates from `~/.xvw-agents/templates/agents-lint/`
 3. If templates don't exist, use embedded minimal versions
-4. Write to `.agents/scripts/lint-docs.js` and `lint-structure.js`
+4. Write to `.agents/scripts/`:
+   - `lint-docs.js`
+   - `lint-structure.js`
+   - `structure-schema.json` (single source of truth for allowed structure)
 
 If user approved git hooks:
 1. Check for existing `.git/hooks/pre-commit`
@@ -188,7 +219,7 @@ Update `.agents/.scratch/audit-state.json`:
 
 ```json
 {
-  "phase": "migrated",
+  "phase": "repaired",
   "timestamp": "ISO timestamp",
   "findings": { /* original findings */ },
   "plan": { /* executed plan */ },
@@ -204,7 +235,7 @@ Update `.agents/.scratch/audit-state.json`:
 ## Phase 8: Report
 
 ```markdown
-## Migration Complete
+## Repair Complete
 
 ### Summary
 - Moved: X files
@@ -217,7 +248,7 @@ Update `.agents/.scratch/audit-state.json`:
 - docs/ (old nested structure)
 
 ### Next Step
-Run `/audit-validate` to verify the migration.
+Run `/kb-repair-3-validate` to verify the repairs.
 ```
 
 ## Rules
